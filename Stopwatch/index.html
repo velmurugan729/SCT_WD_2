@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Stopwatch </title>
+    <style>
+        /* Base color variables for light mode */
+        :root {
+            --bg-color: #e0e0e0;
+            --text-color: #000;
+            --button-bg: #4CAF50;
+            --button-text: white;
+            --stopwatch-bg: #fff;
+            --lap-bg: #f9f9f9;
+        }
+
+        /* Color variables for dark mode */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #fff;
+            --button-bg: #64dd17;
+            --button-text: black;
+            --stopwatch-bg: #333;
+            --lap-bg: #424242;
+        }
+
+        /* General styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Stopwatch container */
+        #stopwatch {
+            background: var(--stopwatch-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        /* Time display */
+        #timeDisplay {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        /* Button styling */
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+
+        /* Lap list styling */
+        #lapList {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+        #lapList li {
+            background: var(--lap-bg);
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            color: var(--text-color);
+        }
+
+        /* Theme toggle button */
+        #theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <button id="theme-toggle">🌙</button>
+    <div id="stopwatch">
+        <h1>Stopwatch</h1>
+        <div id="timeDisplay">00:00:00.000</div>
+        <button id="start">Start</button>
+        <button id="pause" style="display:none;">Pause</button>
+        <button id="reset">Reset</button>
+        <button id="lap">Lap</button>
+        <ul id="lapList"></ul>
+    </div>
+
+    <script>
+        // Initialize variables for stopwatch functionality
+        let startTime, elapsedTime = 0, isRunning = false, lapCount = 1;
+
+        // Get DOM elements
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startBtn = document.getElementById('start');
+        const pauseBtn = document.getElementById('pause');
+        const resetBtn = document.getElementById('reset');
+        const lapBtn = document.getElementById('lap');
+        const lapList = document.getElementById('lapList');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        // Function to toggle between light and dark themes
+        function toggleTheme() {
+            if (document.body.getAttribute('data-theme') === 'dark') {
+                document.body.setAttribute('data-theme', 'light');
+                themeToggle.textContent = "🌙";
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = "☀️";
+            }
+        }
+
+        // Start the stopwatch
+        function startStopwatch() {
+            if (!isRunning) {
+                startTime = Date.now() - elapsedTime;
+                isRunning = true;
+                startBtn.style.display = 'none';
+                pauseBtn.style.display = 'inline-block';
+                updateTime();
+            }
+        }
+
+        // Pause or resume the stopwatch
+        function pauseStopwatch() {
+            if (isRunning) {
+                isRunning = false;
+                startBtn.textContent = "Resume";
+                startBtn.style.display = 'inline-block';
+                pauseBtn.style.display = 'none';
+            }
+        }
+
+        // Reset stopwatch to zero
+        function resetStopwatch() {
+            isRunning = false;
+            elapsedTime = 0;
+            lapCount = 1;
+            timeDisplay.textContent = '00:00:00.000';
+            lapList.innerHTML = ''; // Clear all laps
+            startBtn.textContent = "Start";
+            startBtn.style.display = 'inline-block';
+            pauseBtn.style.display = 'none';
+        }
+
+        // Record a lap time
+        function lapStopwatch() {
+            if (isRunning) {
+                const lapTime = formatTime(elapsedTime);
+                const lapItem = document.createElement('li');
+                lapItem.textContent = `Lap ${lapCount}: ${lapTime}`;
+                lapList.prepend(lapItem); // Add new lap to the top
+                lapCount++;
+            }
+        }
+
+        // Update the time display
+        function updateTime() {
+            if (isRunning) {
+                elapsedTime = Date.now() - startTime;
+                timeDisplay.textContent = formatTime(elapsedTime);
+                requestAnimationFrame(updateTime);
+            }
+        }
+
+        // Format time into a readable string
+        function formatTime(time) {
+            let hours = Math.floor(time / 3600000);
+            let minutes = Math.floor((time % 3600000) / 60000);
+            let seconds = Math.floor((time % 60000) / 1000);
+            let milliseconds = Math.floor(time % 1000);
+            
+            hours = hours < 10 ? "0" + hours : hours;
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            milliseconds = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
+            
+            return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+        }
+
+        // Event listeners for buttons
+        startBtn.addEventListener('click', startStopwatch);
+        pauseBtn.addEventListener('click', pauseStopwatch);
+        resetBtn.addEventListener('click', resetStopwatch);
+        lapBtn.addEventListener('click', lapStopwatch);
+        themeToggle.addEventListener('click', toggleTheme);
+    </script>
+</body>
+</html>
