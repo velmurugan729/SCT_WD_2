@@ -1,3 +1,5 @@
+This is my second task in SkillCraft Technology Internship. Stopwatch Web Application
+
 Overview
 
 This project is a simple yet feature-rich stopwatch built with HTML, CSS, and JavaScript. It allows users to track time, record lap times, and toggle between light and dark themes for an enhanced user experience.
